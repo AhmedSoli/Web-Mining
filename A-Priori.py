@@ -3,8 +3,9 @@ import itertools
 # @items: List of items as ["itemOne","itemTwo",...]
 # @transactions: List of transaction. Each transaction is a list storing the name of the items as string [["itemOne","itemTwo",..],["itemThree","itemTwo",..],....]
 def support(items,transactions):
-    if not isinstance(items,(list,)):
+    if isinstance(items, str):
         items = [items]
+
     counter = 0
     present = False
     for transaction in transactions:
@@ -114,4 +115,4 @@ print("Confidence For Knowledge Base => Support Desktop")
 print(confidence('Knowledge Base','Support Desktop',transactions))
 
 print("Frequent Items sets")
-print(find_frequent_itemsets(transactions,0.1))
+print(find_frequent_itemsets(transactions,0.2))
