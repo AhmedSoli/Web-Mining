@@ -27,7 +27,13 @@ def confidence(itemLeft,itemRight,transactions):
             counterLeft += 1
             if itemRight in transaction:
                 counterRight += 1
-    return (counterRight / counterLeft)
+    if counterLeft == 0:
+        return 0
+    else:
+        return (counterRight / counterLeft)
+
+
+
 
 
 # Finds all itemsets which have a support higher than minimum_support
@@ -46,18 +52,77 @@ def find_frequent_itemsets(transactions,minimum_support):
     iteration = 2
     while(not stop):
         updatedItemSets = []
+        # Set containing all remaining elements
+        itemsLeft = set()
+        # Iterate over all remaining sets with size i
+        # Calculate sup. 
+        # If higher than min_sup add to updatedItemSets & add item to itemsLeft
+
         for itemSet in itemSets:
             sup = support(itemSet,transactions)
-            print(sup)
             if sup >= minimum_support:
                 updatedItemSets.append(itemSet)
                 dict.update({itemSet:sup})
+                for item in itemSet:
+                    itemsLeft.add(item)
 
-        print(updatedItemSets)
+        # Now you have a list of all remaning elements
+        # And a list of all sets of size i which are permutations of the elements in the itemsLeft set
+        # and have a higher support than min_sup
 
         if len(updatedItemSets) > 0:
-            itemSets = list(itertools.combinations(list(updatedItemSets),iteration))
-            print(itemSets)
+            if iteration == 2:
+                itemSets = list(itertools.combinations(list(updatedItemSets),iteration))
+            if iteration == 3:
+                # Iterartion
+                # Get a list of all active elements
+                # Start with the first element
+                # add all elements it has to the set
+                tupelScores = {}
+                thirdPerms = itertools.permutations(list(itemsLeft),iteration)
+
+                for thirdPerm in thirdPerms:
+                    tupelScores.update({thirdPerm:0})
+
+
+                itemSets = []
+
+
+                for itemSet in updatedItemSets:
+                    for item in itemsLeft:
+                        if item not in itemSet:
+                            firstItem = itemSet[0]
+                            secondItem = itemSet[1]
+                            tupelScores[(firstItem,secondItem,item)] += 1
+                            tupelScores[(firstItem,item,secondItem)] += 1
+                            tupelScores[(secondItem,firstItem,item)] += 1
+                            tupelScores[(secondItem,item,firstItem)] += 1
+                            tupelScores[(item,firstItem,secondItem)] += 1
+                            tupelScores[(item,secondItem,firstItem)] += 1
+
+                            if tupelScores[(firstItem,secondItem,item)] == 3:
+                                itemSets.append((firstItem,secondItem,item))
+            if iteration == 4:
+                # Preparing a list for all possible permutations of the remaining items
+                # When the score reaches 3: The permutation should be considered for the next iteration
+                tupelScores = {}
+                perms = itertools.permutations(list(itemsLeft),iteration)
+                for perm in perms:
+                    tupelScores.update({perm:0})
+                # Initialising empty itemSets
+                itemSets = []
+
+                # We loop over the set with sets of size iteration -  1
+                for itemSet in updatedItemSets:   
+                    for item in itemsLeft:
+                        if item not in itemSet:
+                            itemSetPerms = itertools.permutations(list(itemsLeft),iteration)
+                            for itemSetPerm in itemSetPerms:
+                                tupelScores[itemSetPerm] += 1
+                                if tupelScores[itemSetPerm] == iteration:
+                                    itemSets.append(itemSetPerm)
+                                    break
+
         else:
             stop = True
 
@@ -115,4 +180,4 @@ print("Confidence For Knowledge Base => Support Desktop")
 print(confidence('Knowledge Base','Support Desktop',transactions))
 
 print("Frequent Items sets")
-print(find_frequent_itemsets(transactions,0.2))
+print(find_frequent_itemsets(transactions,0.01))
