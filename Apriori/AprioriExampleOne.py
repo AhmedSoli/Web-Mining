@@ -1,8 +1,10 @@
 import apriori as ap
 import pprint      
+import os
+
 
 def loadData(fileName):
-    with open('data/' + fileName) as file:
+    with open(os.path.abspath('..') + '/data/' + fileName) as file:
         content = file.readlines()
         lines = [x.strip() for x in content]
     dict = {}

@@ -91,7 +91,9 @@ def find_frequent_itemsets(transactions,min_support = 0,min_frequency = 0):
         for itemSet in itemSets:
             sup = support(itemSet,transactions)
             if sup >= min_support and ((sup * transactions_size) >= min_frequency):
-
+                print(itemSet)
+                print(sup)
+                print("---------------------")
                 filteredItemSets.append(itemSet)
                 dict.update({itemSet:sup*transactions_size})
                 for item in itemSet:
@@ -119,7 +121,9 @@ def find_frequent_itemsets(transactions,min_support = 0,min_frequency = 0):
                 for itemSet in filteredItemSets:   
                     for item in itemsLeft:
                         if item not in itemSet:
-                            itemSetPerms = itertools.permutations(list(itemsLeft),iteration)
+                            itemSet = list(itemSet)
+                            itemSet.append(item)
+                            itemSetPerms = itertools.permutations(itemSet,iteration)
                             for itemSetPerm in itemSetPerms:
                                 tupelScores[itemSetPerm] += 1
                                 if tupelScores[itemSetPerm] == iteration:
