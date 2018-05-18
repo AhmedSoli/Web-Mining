@@ -73,36 +73,8 @@ def find_frequent_itemsets(transactions,minimum_support):
         if len(updatedItemSets) > 0:
             if iteration == 2:
                 itemSets = list(itertools.combinations(list(updatedItemSets),iteration))
-            if iteration == 3:
-                # Iterartion
-                # Get a list of all active elements
-                # Start with the first element
-                # add all elements it has to the set
-                tupelScores = {}
-                thirdPerms = itertools.permutations(list(itemsLeft),iteration)
-
-                for thirdPerm in thirdPerms:
-                    tupelScores.update({thirdPerm:0})
-
-
-                itemSets = []
-
-
-                for itemSet in updatedItemSets:
-                    for item in itemsLeft:
-                        if item not in itemSet:
-                            firstItem = itemSet[0]
-                            secondItem = itemSet[1]
-                            tupelScores[(firstItem,secondItem,item)] += 1
-                            tupelScores[(firstItem,item,secondItem)] += 1
-                            tupelScores[(secondItem,firstItem,item)] += 1
-                            tupelScores[(secondItem,item,firstItem)] += 1
-                            tupelScores[(item,firstItem,secondItem)] += 1
-                            tupelScores[(item,secondItem,firstItem)] += 1
-
-                            if tupelScores[(firstItem,secondItem,item)] == 3:
-                                itemSets.append((firstItem,secondItem,item))
-            if iteration == 4:
+         
+            if iteration >= 3:
                 # Preparing a list for all possible permutations of the remaining items
                 # When the score reaches 3: The permutation should be considered for the next iteration
                 tupelScores = {}
@@ -122,6 +94,10 @@ def find_frequent_itemsets(transactions,minimum_support):
                                 if tupelScores[itemSetPerm] == iteration:
                                     itemSets.append(itemSetPerm)
                                     break
+
+
+                if len(itemSet) == 0:
+                    stop = True
 
         else:
             stop = True
@@ -180,4 +156,4 @@ print("Confidence For Knowledge Base => Support Desktop")
 print(confidence('Knowledge Base','Support Desktop',transactions))
 
 print("Frequent Items sets")
-print(find_frequent_itemsets(transactions,0.01))
+print(find_frequent_itemsets(transactions,0.05))
