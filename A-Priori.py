@@ -1,4 +1,7 @@
 import itertools
+import operator
+import pprint
+
 # Calculates the support of an item in a list of transactions as described by Apriori
 # @items: List of items as ["itemOne","itemTwo",...]
 # @transactions: List of transaction. Each transaction is a list storing the name of the items as string [["itemOne","itemTwo",..],["itemThree","itemTwo",..],....]
@@ -16,6 +19,7 @@ def support(items,transactions):
         if present:
             counter += 1
     return (counter/len(transactions))
+
 
 # Calculates the confidence of an item in a list of transactions as described by Apriori
 # @itemLeft => @itemRight       
@@ -38,7 +42,16 @@ def confidence(itemLeft,itemRight,transactions):
 
 # Finds all itemsets which have a support higher than minimum_support
 # Return a dictionary with the set and support
-def find_frequent_itemsets(transactions,minimum_support):
+## General Idea:
+## 1. Create list of all elements present in the transactions
+## 2. Filter all items from the list which have a lower support than the min_sup
+## Set n to 2
+## 3. Create a list of all possible combinations of size n of the remaining elements 
+## 4. Filter all combinations which have a lower support than the min_sup
+## 5. Create a list of all elements in the remaining combinations
+## 6. If list is not empty Go to step 3
+## 7. stop
+def find_frequent_itemsets(transactions,min_support = 0,min_frequency = 0):
     # find all items 
     items = set()
     for transaction in transactions:
@@ -51,18 +64,20 @@ def find_frequent_itemsets(transactions,minimum_support):
 
     iteration = 2
     while(not stop):
-        updatedItemSets = []
+        filteredItemSets = []
         # Set containing all remaining elements
         itemsLeft = set()
         # Iterate over all remaining sets with size i
         # Calculate sup. 
-        # If higher than min_sup add to updatedItemSets & add item to itemsLeft
+        # If higher than min_sup add to filteredItemSets & add item to itemsLeft
+        transactions_size = len(transactions)
 
         for itemSet in itemSets:
             sup = support(itemSet,transactions)
-            if sup >= minimum_support:
-                updatedItemSets.append(itemSet)
-                dict.update({itemSet:sup})
+            if sup >= min_support and ((sup * transactions_size) >= min_frequency):
+
+                filteredItemSets.append(itemSet)
+                dict.update({itemSet:sup*transactions_size})
                 for item in itemSet:
                     itemsLeft.add(item)
 
@@ -70,9 +85,9 @@ def find_frequent_itemsets(transactions,minimum_support):
         # And a list of all sets of size i which are permutations of the elements in the itemsLeft set
         # and have a higher support than min_sup
 
-        if len(updatedItemSets) > 0:
+        if len(filteredItemSets) > 0:
             if iteration == 2:
-                itemSets = list(itertools.combinations(list(updatedItemSets),iteration))
+                itemSets = list(itertools.combinations(list(filteredItemSets),iteration))
          
             if iteration >= 3:
                 # Preparing a list for all possible permutations of the remaining items
@@ -85,7 +100,7 @@ def find_frequent_itemsets(transactions,minimum_support):
                 itemSets = []
 
                 # We loop over the set with sets of size iteration -  1
-                for itemSet in updatedItemSets:   
+                for itemSet in filteredItemSets:   
                     for item in itemsLeft:
                         if item not in itemSet:
                             itemSetPerms = itertools.permutations(list(itemsLeft),iteration)
@@ -104,11 +119,12 @@ def find_frequent_itemsets(transactions,minimum_support):
 
         iteration += 1
 
-    return dict
+    return sorted(dict.items(), key=operator.itemgetter(1), reverse=True)
+
             
 
-def loadData():
-    with open('data/weblog.csv') as file:
+def loadData(fileName):
+    with open('data/' + fileName) as file:
         content = file.readlines()
         lines = [x.strip() for x in content]
     dict = {}
@@ -127,15 +143,13 @@ def loadData():
 
 
 
-
-
 ## Example of usage
 # Data file syntax: userID, websiteName
 
 # you may also want to remove whitespace characters like `\n` at the end of each line
 items = []
 items.append('Knowledge Base')
-transactions = loadData()
+transactions = loadData('weblog.csv')
 
 
 print("Support for Knowledge Base")
@@ -156,4 +170,4 @@ print("Confidence For Knowledge Base => Support Desktop")
 print(confidence('Knowledge Base','Support Desktop',transactions))
 
 print("Frequent Items sets")
-print(find_frequent_itemsets(transactions,0.05))
+pprint.pprint(find_frequent_itemsets(transactions,min_frequency = 1000))

@@ -20,8 +20,6 @@ def support(items,transactions):
             counter += 1
     return (counter/len(transactions))
 
-def supportCount(items,transactions):
-    return support(items,transactions) * len(transactions)
 
 # Calculates the confidence of an item in a list of transactions as described by Apriori
 # @itemLeft => @itemRight       
@@ -44,7 +42,17 @@ def confidence(itemLeft,itemRight,transactions):
 
 # Finds all itemsets which have a support higher than minimum_support
 # Return a dictionary with the set and support
-def find_frequent_itemsets(transactions,minimum_support):
+## General Idea:
+## 1. Create list of all elements present in the transactions
+## 2. Filter all items from the list which have a lower support than the min_sup
+## Set n to 2
+## 3. Create a list of all possible combinations of size n of the remaining elements 
+## 4. Filter all combinations which have a lower support than the min_sup
+## 5. Create a list of all elements in the remaining combinations
+## 6. If list is not empty Go to step 3
+## 7. stop
+def find_frequent_itemsets(transactions,min_support = 0,min_frequency = 0):
+    print(min_frequency)
     # find all items 
     items = set()
     for transaction in transactions:
@@ -63,12 +71,17 @@ def find_frequent_itemsets(transactions,minimum_support):
         # Iterate over all remaining sets with size i
         # Calculate sup. 
         # If higher than min_sup add to filteredItemSets & add item to itemsLeft
+        transactions_size = len(transactions)
 
         for itemSet in itemSets:
             sup = support(itemSet,transactions)
-            if sup >= minimum_support:
+            if sup >= min_support and ((sup * transactions_size) >= min_frequency):
+                print(itemSet)
+                print(sup)
+                print(sup*transactions_size)
+                print("---------------")
                 filteredItemSets.append(itemSet)
-                dict.update({itemSet:sup})
+                dict.update({itemSet:sup*transactions_size})
                 for item in itemSet:
                     itemsLeft.add(item)
 
@@ -112,82 +125,10 @@ def find_frequent_itemsets(transactions,minimum_support):
 
     return sorted(dict.items(), key=operator.itemgetter(1), reverse=True)
 
-# Finds all itemsets which have a support higher than minimum_support
-# Return a dictionary with the set and support
-def find_frequent_itemsets_alternative(transactions,minimum_support_count):
-    # find all items 
-    items = set()
-    for transaction in transactions:
-        for item in transaction:
-            items.add(item)     
-    # Remove all items which don't meet the min sup
-    dict = {}
-    itemSets = list(items)
-    stop = False
-
-    iteration = 2
-    while(not stop):
-        filteredItemSets = []
-        # Set containing all remaining elements
-        itemsLeft = set()
-        # Iterate over all remaining sets with size i
-        # Calculate sup. 
-        # If higher than min_sup add to filteredItemSets & add item to itemsLeft
-
-        for itemSet in itemSets:
-            sup = supportCount(itemSet,transactions)
-            print(itemSet)
-            print(sup)
-            if sup >= minimum_support_count:
-                filteredItemSets.append(itemSet)
-                dict.update({itemSet:sup})
-                for item in itemSet:
-                    itemsLeft.add(item)
-
-        # Now you have a list of all remaning elements
-        # And a list of all sets of size i which are permutations of the elements in the itemsLeft set
-        # and have a higher support than min_sup
-
-        if len(filteredItemSets) > 0:
-            if iteration == 2:
-                itemSets = list(itertools.combinations(list(filteredItemSets),iteration))
-         
-            if iteration >= 3:
-                # Preparing a list for all possible permutations of the remaining items
-                # When the score reaches 3: The permutation should be considered for the next iteration
-                tupelScores = {}
-                perms = itertools.permutations(list(itemsLeft),iteration)
-                for perm in perms:
-                    tupelScores.update({perm:0})
-                # Initialising empty itemSets
-                itemSets = set()
-
-                # We loop over the set with sets of size iteration -  1
-                for itemSet in filteredItemSets:   
-                    for item in itemsLeft:
-                        if item not in itemSet:
-                            itemSetPerms = itertools.permutations(list(itemsLeft),iteration)
-                            for itemSetPerm in itemSetPerms:
-                                tupelScores[itemSetPerm] += 1
-                                if tupelScores[itemSetPerm] == iteration:
-                                    itemSets.add(itemSetPerm)
-                                    break
-
-
-                if len(itemSet) == 0:
-                    stop = True
-
-        else:
-            stop = True
-
-        iteration += 1
-
-    return sorted(dict.items(), key=operator.itemgetter(1), reverse=True)
-
             
 
-def loadData():
-    with open('data/weblog.csv') as file:
+def loadData(fileName):
+    with open('data/' + fileName) as file:
         content = file.readlines()
         lines = [x.strip() for x in content]
     dict = {}
@@ -213,7 +154,9 @@ def loadData():
 
 # you may also want to remove whitespace characters like `\n` at the end of each line
 items = []
-transactions = loadData()
+transactions = loadData('weblog.csv')
 
 print("Frequent Items sets")
-print(find_frequent_itemsets_alternative(transactions,500))
+pprint.pprint(find_frequent_itemsets(transactions,min_frequency = 1000))
+
+
