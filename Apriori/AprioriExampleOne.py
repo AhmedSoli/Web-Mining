@@ -50,4 +50,7 @@ print("Confidence For Knowledge Base => Support Desktop")
 print(ap.confidence('Knowledge Base','Support Desktop',transactions))
 
 print("Frequent Items sets")
-pprint.pprint(ap.find_frequent_itemsets(transactions,min_frequency = 1000))
+pprint.pprint(ap.find_frequent_itemsets(transactions,min_support = 0.05))
+
+print("Frequent Items sets")
+pprint.pprint(ap.find_frequent_itemsets(transactions,min_frequency = 3000))
